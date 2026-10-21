@@ -167,18 +167,20 @@ button { font-family: inherit; }
 .lead { margin: 0; max-width: 480px; font-size: 18px; line-height: 1.55; color: var(--cream-text); }
 .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
 
-.hero-art { flex: 1 1 420px; min-width: 0; position: relative; height: 500px; }
+.hero-art { flex: 1 1 420px; min-width: 0; position: relative; height: 660px; }
 .hero-img { position: absolute; height: auto; filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.45)); }
-.hero-img-1 { width: 66%; top: 0; right: 0; }
+.hero-img-1 { width: 99%; top: 0; right: -14%; }
 .hero-img-2 {
-  width: 78%; bottom: 0; left: 0;
+  width: 117%; bottom: 0; left: -14%;
   /* La imagen trae chips cortados en los bordes: los desvanecemos. */
   -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 70%, transparent 100%);
   mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 70%, transparent 100%);
 }
 @media (max-width: 600px) {
   .hero-inner { padding-top: 48px; padding-bottom: 64px; }
-  .hero-art { height: 340px; }
+  .hero-art { height: 460px; }
+  .hero-img-1 { right: -8%; }
+  .hero-img-2 { left: -10%; }
 }
 
 /* ---------- olas ---------- */
