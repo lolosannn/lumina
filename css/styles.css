@@ -197,7 +197,9 @@ button { font-family: inherit; }
 }
 
 @media (max-width: 600px) {
-  .hero-inner { padding-top: 48px; padding-bottom: 64px; }
+  .hero-inner { padding-top: 48px; padding-bottom: 64px; gap: 8px; }
+  /* En el celular el hero queda solo con el título y las fotos. */
+  .hero .lead, .hero-actions { display: none; }
   .hero-art { height: 460px; }
   .hero-img-1 { right: -8%; }
   .hero-img-2 { left: -10%; }
