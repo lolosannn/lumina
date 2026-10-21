@@ -20,7 +20,7 @@
       <img src="img/logo.png" alt="" width="52" height="52">
       <span>Lúmina Bakery</span>
     </a>
-    <nav class="main-nav" aria-label="Principal">
+    <nav class="main-nav" id="main-nav" aria-label="Principal" data-nav>
       <a href="#productos">Productos</a>
       <a href="#nosotros">Sobre nosotros</a>
       <a href="#para-locales">Para cafeterías</a>
@@ -31,6 +31,9 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
       <span>Carrito</span>
       <span class="cart-count" data-cart-count aria-label="productos en el carrito">0</span>
+    </button>
+    <button type="button" class="menu-button icon-btn" data-menu-toggle aria-controls="main-nav" aria-expanded="false" aria-label="Abrir menú">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path class="menu-icon-open" d="M4 7h16M4 12h16M4 17h16"/><path class="menu-icon-close" d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
   </div>
 </header>

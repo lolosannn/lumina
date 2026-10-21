@@ -241,8 +241,31 @@
     }
   });
 
+  // ---------- menú del celular ----------
+
+  var menuBoton = $('[data-menu-toggle]');
+  var menu = $('[data-nav]');
+
+  function setMenu(abierto) {
+    menu.classList.toggle('is-open', abierto);
+    menuBoton.setAttribute('aria-expanded', String(abierto));
+    menuBoton.setAttribute('aria-label', abierto ? 'Cerrar menú' : 'Abrir menú');
+  }
+
+  menuBoton.addEventListener('click', function () {
+    setMenu(!menu.classList.contains('is-open'));
+  });
+  menu.addEventListener('click', function (e) {
+    if (e.target.closest('a')) setMenu(false);
+  });
+  document.addEventListener('click', function (e) {
+    if (menu.classList.contains('is-open') && !e.target.closest('.site-header')) setMenu(false);
+  });
+
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !$('[data-cart]').hidden) cerrarCarrito();
+    if (e.key !== 'Escape') return;
+    if (!$('[data-cart]').hidden) cerrarCarrito();
+    else if (menu.classList.contains('is-open')) { setMenu(false); menuBoton.focus(); }
   });
 
   $('[data-cart-name]').addEventListener('input', function (e) {
