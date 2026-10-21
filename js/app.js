@@ -263,6 +263,22 @@
     a.href = linkWhatsApp('¡Hola Lúmina Bakery! Tengo un local y me interesa ofrecer sus productos. ¿Me pasan info para revendedores?');
   });
 
+  // Las fotos del hero siguen un poco al mouse (solo con mouse y sin "reducir movimiento").
+  var heroArt = $('.hero-art');
+  if (heroArt && window.matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)').matches) {
+    $('.hero').addEventListener('mousemove', function (e) {
+      var r = heroArt.getBoundingClientRect();
+      var x = (e.clientX - (r.left + r.width / 2)) / window.innerWidth;
+      var y = (e.clientY - (r.top + r.height / 2)) / window.innerHeight;
+      heroArt.style.setProperty('--px', (x * 24).toFixed(1) + 'px');
+      heroArt.style.setProperty('--py', (y * 24).toFixed(1) + 'px');
+    });
+    $('.hero').addEventListener('mouseleave', function () {
+      heroArt.style.setProperty('--px', '0px');
+      heroArt.style.setProperty('--py', '0px');
+    });
+  }
+
   renderFiltros();
   renderProductos();
   renderCarrito();
