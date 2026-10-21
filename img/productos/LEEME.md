@@ -14,6 +14,6 @@ Subí acá las fotos de los productos. Cada foto tiene que tener **exactamente**
 | Torta matera                | `torta-matera.jpg`          |
 
 - Mientras una foto no esté, la web muestra "Foto próximamente" en su lugar.
-- Las fotos se ven recortadas en formato horizontal (4:3), así que conviene que el producto esté centrado.
+- Las fotos se ven recortadas en formato vertical (4:5), así que conviene que el producto esté centrado.
 - Ideal: unos 1200 px de ancho y menos de 500 KB cada una, para que la página cargue rápido.
 - Si las subís con otro nombre o formato (por ejemplo `.png` o `IMG_1234.jpg`), avisá y se renombran o se cambia el nombre en `js/productos.js`.
