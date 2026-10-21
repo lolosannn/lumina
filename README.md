@@ -9,6 +9,7 @@ Es un sitio estático (HTML, CSS y JavaScript, sin dependencias ni compilación)
 ```
 index.html            Página principal
 css/styles.css        Estilos (colores de la marca en :root)
+css/fonts.css         Tipografías alojadas en el sitio (archivos en fonts/)
 js/productos.js       Productos, precios, categorías y número de WhatsApp  ← lo que más se edita
 js/app.js             Lógica de filtros, carrito y mensaje de WhatsApp
 img/                  Logo e imágenes de la portada
@@ -47,3 +48,22 @@ Total: $16.000
 Nombre: Sofía
 Aclaraciones: Retiro el sábado
 ```
+
+## Seguridad
+
+El sitio no tiene servidor, base de datos, formularios ni pagos: el pedido viaja por WhatsApp, así que no guarda datos de clientes. Aun así tiene estas protecciones:
+
+- **Política de seguridad de contenido (CSP)** en `index.html`: el navegador solo ejecuta scripts, estilos, fuentes e imágenes del propio sitio. Bloquea código inyectado y cualquier recurso externo.
+- **Sin recursos de terceros**: las tipografías están en `fonts/` (antes venían de Google Fonts), así que ninguna visita se comparte con otros servicios.
+- **Todo el texto que se muestra se escapa** antes de insertarse en la página, y el carrito guardado en el navegador se valida al leerlo (solo productos existentes y cantidades de 1 a 50).
+- **Límites** en nombre (60 caracteres) y aclaraciones (300).
+- **Links externos** con `rel="noopener noreferrer"` y referrer limitado.
+- **Anti-clickjacking**: la página no se deja mostrar dentro de un iframe de otro sitio.
+
+Si se agregan scripts o estilos nuevos, tienen que ir en archivos propios (no en línea ni desde otro dominio), o la CSP los va a bloquear.
+
+### Recomendado en GitHub (lo hace la dueña de la cuenta)
+
+1. **Settings → Pages → Enforce HTTPS** activado.
+2. **Autenticación en dos pasos** en la cuenta de GitHub (Settings → Password and authentication).
+3. Si se usa un dominio propio, **verificarlo** en Settings → Pages para que nadie más pueda usarlo.

@@ -1,8 +1,17 @@
 (function () {
   'use strict';
 
+  // Evita que la página se muestre dentro de un iframe de otro sitio (clickjacking).
+  if (window.top !== window.self) {
+    try { window.top.location = window.self.location.href; } catch (e) { document.documentElement.hidden = true; }
+    return;
+  }
+
   var data = window.LUMINA;
   var STORAGE_KEY = 'lumina-carrito';
+  var MAX_CANTIDAD = 50;
+  var MAX_NOMBRE = 60;
+  var MAX_NOTA = 300;
   // Fotos que no existen todavía: no se vuelven a pedir en cada render.
   var fotosFaltantes = {};
 
@@ -53,7 +62,7 @@
       var limpio = {};
       Object.keys(guardado).forEach(function (id) {
         var q = parseInt(guardado[id], 10);
-        if (q > 0 && producto(id)) limpio[id] = q;
+        if (q > 0 && producto(id)) limpio[id] = Math.min(q, MAX_CANTIDAD);
       });
       return limpio;
     } catch (e) {
@@ -78,6 +87,8 @@
   // ---------- carrito ----------
 
   function setCantidad(id, qty) {
+    if (!producto(id)) return;
+    qty = Math.min(qty, MAX_CANTIDAD);
     if (qty > 0) state.carrito[id] = qty;
     else delete state.carrito[id];
     guardarCarrito();
@@ -108,18 +119,18 @@
     var opciones = [{ id: 'todos', nombre: 'Todos' }].concat(data.categorias);
     cont.innerHTML = opciones.map(function (c) {
       var on = state.filtro === c.id;
-      return '<button type="button" class="pill' + (on ? ' is-active' : '') + '" aria-pressed="' + on + '" data-filter="' + c.id + '">' + escapar(c.nombre) + '</button>';
+      return '<button type="button" class="pill' + (on ? ' is-active' : '') + '" aria-pressed="' + on + '" data-filter="' + escapar(c.id) + '">' + escapar(c.nombre) + '</button>';
     }).join('');
   }
 
   function controlCantidad(p, qty) {
     if (!qty) {
-      return '<button type="button" class="btn btn-cream btn-sm" data-add="' + p.id + '">' + ICON_PLUS + 'Agregar</button>';
+      return '<button type="button" class="btn btn-cream btn-sm" data-add="' + escapar(p.id) + '">' + ICON_PLUS + 'Agregar</button>';
     }
     return '<div class="stepper">' +
-      '<button type="button" data-dec="' + p.id + '" aria-label="Quitar un ' + escapar(p.nombre) + '">' + ICON_MINUS + '</button>' +
+      '<button type="button" data-dec="' + escapar(p.id) + '" aria-label="Quitar un ' + escapar(p.nombre) + '">' + ICON_MINUS + '</button>' +
       '<span aria-live="polite">' + qty + '</span>' +
-      '<button type="button" class="stepper-plus" data-add="' + p.id + '" aria-label="Agregar un ' + escapar(p.nombre) + '">' + ICON_PLUS + '</button>' +
+      '<button type="button" class="stepper-plus" data-add="' + escapar(p.id) + '" aria-label="Agregar un ' + escapar(p.nombre) + '">' + ICON_PLUS + '</button>' +
       '</div>';
   }
 
@@ -181,9 +192,9 @@
         '</div>' +
         '<div class="cart-item-side">' +
           '<div class="stepper stepper-dark">' +
-            '<button type="button" data-dec="' + it.p.id + '" aria-label="Quitar un ' + escapar(it.p.nombre) + '">' + ICON_MINUS + '</button>' +
+            '<button type="button" data-dec="' + escapar(it.p.id) + '" aria-label="Quitar un ' + escapar(it.p.nombre) + '">' + ICON_MINUS + '</button>' +
             '<span>' + it.qty + '</span>' +
-            '<button type="button" data-add="' + it.p.id + '" aria-label="Agregar un ' + escapar(it.p.nombre) + '">' + ICON_PLUS + '</button>' +
+            '<button type="button" data-add="' + escapar(it.p.id) + '" aria-label="Agregar un ' + escapar(it.p.nombre) + '">' + ICON_PLUS + '</button>' +
           '</div>' +
           '<strong>' + sub + '</strong>' +
         '</div>' +
@@ -269,11 +280,11 @@
   });
 
   $('[data-cart-name]').addEventListener('input', function (e) {
-    state.nombre = e.target.value;
+    state.nombre = e.target.value.slice(0, MAX_NOMBRE);
     actualizarLinkPedido();
   });
   $('[data-cart-note]').addEventListener('input', function (e) {
-    state.nota = e.target.value;
+    state.nota = e.target.value.slice(0, MAX_NOTA);
     actualizarLinkPedido();
   });
 
