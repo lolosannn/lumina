@@ -10,23 +10,31 @@ Es un sitio estático (HTML, CSS y JavaScript, sin dependencias ni compilación)
 index.html            Página principal
 css/styles.css        Estilos (colores de la marca en :root)
 css/fonts.css         Tipografías alojadas en el sitio (archivos en fonts/)
-js/productos.js       Productos, precios, categorías y número de WhatsApp  ← lo que más se edita
+data/productos.json   Productos, precios, categorías y número de WhatsApp (se edita desde /admin)
 js/app.js             Lógica de filtros, carrito y mensaje de WhatsApp
 img/                  Logo e imágenes de la portada
-img/productos/        Fotos de los productos (ver img/productos/LEEME.md)
+img/productos/        Fotos de los productos
+admin/                Panel de administración
 ```
 
-## Cambiar productos o precios
+## Panel de administración (/admin)
 
-Todo está en `js/productos.js`. Cada producto tiene:
+Entrando a `/admin` (por ejemplo `https://lolosannn.github.io/lumina/admin`) se pueden cambiar precios y fotos, agregar o quitar productos y crear o quitar categorías. Al tocar **Guardar cambios**, el panel guarda todo en este repositorio y GitHub Pages publica la nueva versión en unos minutos.
 
-- `nombre`, `detalle` (texto chico debajo del nombre) y `categoria` (`budines`, `cookies` o `tortas`).
-- `precio`: número sin puntos (`6500` = $6.500). Con `null` aparece "Consultar" y en el pedido sale "precio a confirmar".
-- `imagen`: nombre del archivo dentro de `img/productos/`.
+**Primera vez en cada dispositivo** (celular, compu):
+
+1. Crear una llave de GitHub en https://github.com/settings/personal-access-tokens/new con la cuenta dueña del repo:
+   - Repository access: *Only select repositories* → `lumina`.
+   - Permissions → Repository permissions → **Contents: Read and write**.
+2. En `/admin`, pegar la llave y elegir una contraseña.
+
+Después, para entrar, solo se pide la contraseña. La llave queda guardada **cifrada con esa contraseña** solo en ese dispositivo; nunca se sube a la web. Si se olvida la contraseña, “Olvidé mi contraseña” borra la configuración y se vuelve a cargar la llave.
+
+Los datos quedan en `data/productos.json`: `precio` es un número sin puntos (`6500` = $6.500) o `null` para “Consultar”, e `imagen` es el nombre del archivo en `img/productos/`.
 
 ## Ver la página en la compu
 
-Abrí `index.html` en el navegador, o levantá un servidor local:
+Levantá un servidor local (abriendo `index.html` directo no cargan los productos):
 
 ```
 python3 -m http.server 8000

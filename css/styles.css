@@ -285,6 +285,7 @@ button { font-family: inherit; }
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 24px;
 }
+.load-error { grid-column: 1 / -1; margin: 0; font-size: 18px; text-align: center; }
 .product-card {
   background: var(--navy); color: var(--cream);
   border-radius: var(--radius-card);

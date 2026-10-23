@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://api.github.com; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Administrar — Lúmina Bakery</title>
+  <link rel="icon" href="../img/favicon.png" type="image/png">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<header class="admin-header">
+  <div class="admin-wrap admin-header-inner">
+    <a href="../" class="admin-brand">
+      <img src="../img/logo.png" alt="" width="40" height="40">
+      <span>Lúmina · Admin</span>
+    </a>
+    <button type="button" class="link-btn" data-logout hidden>Salir</button>
+  </div>
+</header>
+
+<main class="admin-wrap">
+
+  <!-- Primera vez en este dispositivo -->
+  <section class="panel" data-screen="setup" hidden>
+    <h1>Configurar el administrador</h1>
+    <p>Esto se hace <strong>una sola vez por dispositivo</strong> (celular, compu). Necesitás una llave de GitHub para que la página pueda guardar los cambios, y una contraseña que vos elijas para entrar.</p>
+    <details class="help">
+      <summary>¿Cómo consigo la llave de GitHub?</summary>
+      <ol>
+        <li>Entrá a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">github.com/settings/personal-access-tokens/new</a> con la cuenta dueña de la web.</li>
+        <li><strong>Token name:</strong> Admin Lúmina. <strong>Expiration:</strong> la fecha más lejana que te deje.</li>
+        <li><strong>Repository access:</strong> “Only select repositories” y elegí <strong>lumina</strong>.</li>
+        <li><strong>Permissions → Repository permissions → Contents:</strong> “Read and write”.</li>
+        <li>Tocá <strong>Generate token</strong> y copiá el código (empieza con <code>github_pat_</code>).</li>
+      </ol>
+    </details>
+    <div class="form">
+      <label for="setup-token">Llave de GitHub</label>
+      <input id="setup-token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
+      <label for="setup-pass">Elegí una contraseña</label>
+      <input id="setup-pass" type="password" autocomplete="new-password" minlength="6">
+      <label for="setup-pass2">Repetí la contraseña</label>
+      <input id="setup-pass2" type="password" autocomplete="new-password" minlength="6">
+      <button type="button" class="btn" data-setup>Guardar y entrar</button>
+      <p class="msg" data-msg="setup" role="alert"></p>
+    </div>
+  </section>
+
+  <!-- Entrar -->
+  <section class="panel panel-narrow" data-screen="login" hidden>
+    <h1>Entrar</h1>
+    <div class="form">
+      <label for="login-pass">Contraseña</label>
+      <input id="login-pass" type="password" autocomplete="current-password">
+      <button type="button" class="btn" data-login>Entrar</button>
+      <p class="msg" data-msg="login" role="alert"></p>
+      <button type="button" class="link-btn" data-reset>Olvidé mi contraseña</button>
+    </div>
+  </section>
+
+  <!-- Editor -->
+  <section data-screen="editor" hidden>
+    <div class="savebar">
+      <p class="msg" data-msg="editor" role="status"></p>
+      <button type="button" class="btn" data-save>Guardar cambios</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Categorías</h2>
+        <button type="button" class="btn btn-light" data-add-cat>+ Agregar categoría</button>
+      </div>
+      <p class="hint">“Nombre” es el botón de filtro (ej: Budines). “Etiqueta” es el cartelito en la foto (ej: Budín).</p>
+      <div class="cat-list" data-cats></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Productos</h2>
+        <button type="button" class="btn btn-light" data-add-prod>+ Agregar producto</button>
+      </div>
+      <p class="hint">Dejá el precio vacío para que diga “Consultar”. Las fotos se recortan solas en formato vertical.</p>
+      <div class="prod-list" data-prods></div>
+    </div>
+  </section>
+
+  <p class="loading" data-screen="loading">Cargando…</p>
+</main>
+
+<script src="admin.js"></script>
+</body>
+</html>

@@ -7,7 +7,9 @@
     return;
   }
 
-  var data = window.LUMINA;
+  // Los productos se leen de data/productos.json (se editan desde /admin).
+  // Mientras carga, el sitio arranca vacío pero con el WhatsApp funcionando.
+  var data = { whatsapp: '5491132385943', categorias: [], productos: [] };
   var STORAGE_KEY = 'lumina-carrito';
   var MAX_CANTIDAD = 50;
   var MAX_NOMBRE = 60;
@@ -17,7 +19,7 @@
 
   var state = {
     filtro: 'todos',
-    carrito: cargarCarrito(),
+    carrito: {},
     nombre: '',
     nota: ''
   };
@@ -290,14 +292,37 @@
 
   // ---------- inicio ----------
 
-  $$('[data-wa="consulta"]').forEach(function (a) {
-    a.href = linkWhatsApp('¡Hola Lúmina Bakery! Quería hacer una consulta.');
-  });
-  $$('[data-wa="mayorista"]').forEach(function (a) {
-    a.href = linkWhatsApp('¡Hola Lúmina Bakery! Tengo un local y me interesa ofrecer sus productos. ¿Me pasan info para revendedores?');
-  });
+  function actualizarLinksWhatsApp() {
+    $$('[data-wa="consulta"]').forEach(function (a) {
+      a.href = linkWhatsApp('¡Hola Lúmina Bakery! Quería hacer una consulta.');
+    });
+    $$('[data-wa="mayorista"]').forEach(function (a) {
+      a.href = linkWhatsApp('¡Hola Lúmina Bakery! Tengo un local y me interesa ofrecer sus productos. ¿Me pasan info para revendedores?');
+    });
+  }
+  actualizarLinksWhatsApp();
 
-  renderFiltros();
-  renderProductos();
+  function iniciar() {
+    state.carrito = cargarCarrito();
+    renderFiltros();
+    renderProductos();
+    renderCarrito();
+  }
+
   renderCarrito();
+  fetch('data/productos.json', { cache: 'no-cache' })
+    .then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function (json) {
+      if (!json || !Array.isArray(json.productos) || !Array.isArray(json.categorias)) throw new Error('formato');
+      data = json;
+      if (!/^\d{8,15}$/.test(String(data.whatsapp || ''))) data.whatsapp = '5491132385943';
+      actualizarLinksWhatsApp();
+      iniciar();
+    })
+    .catch(function () {
+      $('[data-product-grid]').innerHTML = '<p class="load-error">No pudimos cargar los productos. Escribinos por WhatsApp y te pasamos la lista.</p>';
+    });
 })();
