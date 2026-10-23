@@ -238,7 +238,7 @@ button { font-family: inherit; }
   background-repeat: repeat-x, repeat-x;
   background-size: 720px 100%, 960px 100%;
   background-position: 0 0, 0 0;
-  animation: wave-move 26s linear infinite;
+  animation: wave-move 16s linear infinite;
 }
 @keyframes wave-move {
   from { background-position: 0 0, 0 0; }
