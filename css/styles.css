@@ -231,14 +231,29 @@ button { font-family: inherit; }
 
 /* ---------- olas ---------- */
 
-.wave { height: 48px; background-repeat: no-repeat; background-size: 100% 100%; }
+/* Olas animadas: dos capas que se desplazan lento en sentidos opuestos.
+   Cada imagen es un período completo de la ola, así se repite sin cortes. */
+.wave {
+  height: 48px;
+  background-repeat: repeat-x, repeat-x;
+  background-size: 720px 100%, 960px 100%;
+  background-position: 0 0, 0 0;
+  animation: wave-move 26s linear infinite;
+}
+@keyframes wave-move {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 720px 0, -960px 0; }
+}
 .wave-to-cream {
   background-color: var(--navy);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 60' preserveAspectRatio='none'%3E%3Cpath d='M0 30 C 120 0, 240 60, 360 30 S 600 0, 720 30 S 960 60, 1080 30 S 1320 0, 1440 30 L1440 60 L0 60 Z' fill='%23EEE2B0'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 720 60' preserveAspectRatio='none'%3E%3Cpath d='M0 30 C 180 6, 180 6, 360 30 S 540 54, 720 30 L720 60 L0 60 Z' fill='%23EEE2B0' fill-opacity='1'/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 960 60' preserveAspectRatio='none'%3E%3Cpath d='M0 24 C 240 0, 240 0, 480 24 S 720 48, 960 24 L960 60 L0 60 Z' fill='%23B9AE80' fill-opacity='1'/%3E%3C/svg%3E");
 }
 .wave-to-navy {
   background-color: var(--cream);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 60' preserveAspectRatio='none'%3E%3Cpath d='M0 30 C 120 0, 240 60, 360 30 S 600 0, 720 30 S 960 60, 1080 30 S 1320 0, 1440 30 L1440 60 L0 60 Z' fill='%23011B3E'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 720 60' preserveAspectRatio='none'%3E%3Cpath d='M0 30 C 180 6, 180 6, 360 30 S 540 54, 720 30 L720 60 L0 60 Z' fill='%23011B3E' fill-opacity='1'/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 960 60' preserveAspectRatio='none'%3E%3Cpath d='M0 24 C 240 0, 240 0, 480 24 S 720 48, 960 24 L960 60 L0 60 Z' fill='%23284673' fill-opacity='1'/%3E%3C/svg%3E");
+}
+@media (prefers-reduced-motion: reduce) {
+  .wave { animation: none; }
 }
 
 /* ---------- secciones crema ---------- */
