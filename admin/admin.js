@@ -12,7 +12,16 @@
   var DATA_PATH = 'data/productos.json';
   var IMG_DIR = 'img/productos/';
   var STORAGE_KEY = 'lumina-admin-v1';
-  var PBKDF2_ITER = 310000;
+  var INTENTOS_KEY = 'lumina-admin-intentos';
+  // Iteraciones recomendadas por OWASP para PBKDF2-SHA256. Las llaves guardadas con
+  // menos (versiones anteriores) se vuelven a cifrar solas al entrar.
+  var PBKDF2_ITER = 600000;
+  var PBKDF2_ITER_VIEJO = 310000;
+  var MIN_PASS = 10;
+  var MAX_FOTO_BYTES = 25 * 1024 * 1024;
+  var INACTIVIDAD_MS = 20 * 60 * 1000;
+  var ID_OK = /^[a-z0-9-]{1,60}$/;
+  var FOTO_OK = /^[a-z0-9-]{1,80}\.(jpe?g|png|webp)$/i;
 
   var token = null;   // solo en memoria; se pierde al recargar o salir
   var branch = null;
@@ -57,11 +66,11 @@
     return arr;
   }
 
-  function derivarClave(password, salt) {
+  function derivarClave(password, salt, iteraciones) {
     return crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey'])
       .then(function (base) {
         return crypto.subtle.deriveKey(
-          { name: 'PBKDF2', salt: salt, iterations: PBKDF2_ITER, hash: 'SHA-256' },
+          { name: 'PBKDF2', salt: salt, iterations: iteraciones, hash: 'SHA-256' },
           base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
       });
   }
@@ -69,20 +78,50 @@
   function guardarLlave(llave, password) {
     var salt = crypto.getRandomValues(new Uint8Array(16));
     var iv = crypto.getRandomValues(new Uint8Array(12));
-    return derivarClave(password, salt).then(function (key) {
+    return derivarClave(password, salt, PBKDF2_ITER).then(function (key) {
       return crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, new TextEncoder().encode(llave));
     }).then(function (ct) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ salt: b64(salt), iv: b64(iv), ct: b64(ct) }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ v: 2, iter: PBKDF2_ITER, salt: b64(salt), iv: b64(iv), ct: b64(ct) }));
     });
   }
 
   function abrirLlave(password) {
-    var guardado = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    return derivarClave(password, desdeB64(guardado.salt)).then(function (key) {
+    var guardado, iter;
+    try {
+      guardado = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      iter = guardado.iter || PBKDF2_ITER_VIEJO;
+    } catch (e) {
+      return Promise.reject(e);
+    }
+    return derivarClave(password, desdeB64(guardado.salt), iter).then(function (key) {
       return crypto.subtle.decrypt({ name: 'AES-GCM', iv: desdeB64(guardado.iv) }, key, desdeB64(guardado.ct));
     }).then(function (plano) {
-      return new TextDecoder().decode(plano);
+      var llave = new TextDecoder().decode(plano);
+      if (iter >= PBKDF2_ITER) return llave;
+      return guardarLlave(llave, password).then(function () { return llave; }, function () { return llave; });
     });
+  }
+
+  // ---------- freno a los intentos de contraseña ----------
+
+  // Después de 3 errores seguidos hay que esperar, cada vez el doble (hasta 15 min).
+  function leerIntentos() {
+    try { return JSON.parse(localStorage.getItem(INTENTOS_KEY)) || { fallos: 0, hasta: 0 }; } catch (e) { return { fallos: 0, hasta: 0 }; }
+  }
+
+  function registrarFallo() {
+    var i = leerIntentos();
+    i.fallos++;
+    if (i.fallos >= 3) i.hasta = Date.now() + Math.min(15 * 60, 15 * Math.pow(2, i.fallos - 3)) * 1000;
+    try { localStorage.setItem(INTENTOS_KEY, JSON.stringify(i)); } catch (e) { /* sin storage */ }
+  }
+
+  function limpiarIntentos() {
+    try { localStorage.removeItem(INTENTOS_KEY); } catch (e) { /* sin storage */ }
+  }
+
+  function segundosDeEspera() {
+    return Math.max(0, Math.ceil((leerIntentos().hasta - Date.now()) / 1000));
   }
 
   function hayLlaveGuardada() {
@@ -154,6 +193,9 @@
   // Recorta al centro en 4:5 y achica a 800×1000 para que la web cargue rápido.
   function procesarFoto(file) {
     return new Promise(function (resolve, reject) {
+      // Se vuelve a dibujar en un canvas: así la foto que se sube no lleva los datos
+      // ocultos del celular (ubicación GPS, modelo, fecha).
+      if (!/^image\//.test(file.type) || file.size > MAX_FOTO_BYTES) { reject(new Error('imagen')); return; }
       var url = URL.createObjectURL(file);
       var img = new Image();
       img.onload = function () {
@@ -284,7 +326,7 @@
         procesarFoto(file.files[0]).then(function (foto) {
           fotosNuevas[p._k] = foto;
           marcarSucio(); renderProductos();
-        }).catch(function () { alert('No se pudo leer esa imagen. Probá con una foto JPG o PNG.'); });
+        }).catch(function () { alert('No se pudo leer esa imagen. Probá con una foto JPG o PNG de menos de 25 MB.'); });
       });
 
       var select = el('select', { 'data-prod': p._k });
@@ -345,6 +387,9 @@
     for (var k = 0; k < data.productos.length; k++) {
       var p = data.productos[k];
       if (!p.nombre.trim()) return 'Hay un producto sin nombre.';
+      if (p.precio !== null && p.precio !== undefined && !(Number.isInteger(p.precio) && p.precio <= 100000000)) return 'El precio de “' + p.nombre + '” no es válido.';
+      if (p.imagen && !FOTO_OK.test(p.imagen)) return 'La foto de “' + p.nombre + '” tiene un nombre no válido. Subila de nuevo.';
+      if (p.id && !ID_OK.test(p.id)) return '“' + p.nombre + '” tiene un id no válido.';
       if (claves.indexOf(claveCategoria(p)) === -1) return '“' + p.nombre + '” no tiene categoría.';
     }
     return null;
@@ -367,7 +412,7 @@
       delete p._catK;
     });
     return {
-      whatsapp: data.whatsapp,
+      whatsapp: /^\d{8,15}$/.test(String(data.whatsapp || '')) ? String(data.whatsapp) : '5491132385943',
       categorias: data.categorias.map(function (c) {
         return { id: c.id, nombre: c.nombre.trim(), etiqueta: (c.etiqueta || c.nombre).trim() };
       }),
@@ -431,7 +476,10 @@
     var p1 = $('#setup-pass').value;
     var p2 = $('#setup-pass2').value;
     if (!llave) { mensaje('setup', 'Pegá la llave de GitHub.', 'error'); return; }
-    if (p1.length < 6) { mensaje('setup', 'La contraseña tiene que tener al menos 6 caracteres.', 'error'); return; }
+    // Solo llaves "fine-grained": se limitan a este repositorio. Las clásicas (ghp_…)
+    // dan acceso a todos los repos de la cuenta y no se aceptan.
+    if (!/^github_pat_[A-Za-z0-9_]{20,255}$/.test(llave)) { mensaje('setup', 'La llave tiene que ser “fine-grained” (empieza con github_pat_). Seguí los pasos de la ayuda.', 'error'); return; }
+    if (p1.length < MIN_PASS) { mensaje('setup', 'La contraseña tiene que tener al menos ' + MIN_PASS + ' caracteres.', 'error'); return; }
     if (p1 !== p2) { mensaje('setup', 'Las contraseñas no coinciden.', 'error'); return; }
     mensaje('setup', 'Verificando…');
     token = llave;
@@ -447,12 +495,18 @@
     });
   });
 
+  var entrando = false;
+
   function login() {
     var pass = $('#login-pass').value;
-    if (!pass) return;
+    if (!pass || entrando) return;
+    var espera = segundosDeEspera();
+    if (espera) { mensaje('login', 'Demasiados intentos. Esperá ' + espera + ' segundos.', 'error'); return; }
+    entrando = true;
     mensaje('login', 'Entrando…');
     abrirLlave(pass).then(function (llave) {
       token = llave;
+      limpiarIntentos();
       $('#login-pass').value = '';
       mensaje('login', '');
       return entrarAlEditor().catch(function (err) {
@@ -460,23 +514,41 @@
         mensaje('login', textoErrorGitHub(err), 'error');
       });
     }, function () {
-      mensaje('login', 'Contraseña incorrecta.', 'error');
-    });
+      registrarFallo();
+      var espera = segundosDeEspera();
+      mensaje('login', 'Contraseña incorrecta.' + (espera ? ' Esperá ' + espera + ' segundos para volver a probar.' : ''), 'error');
+    }).then(function () { entrando = false; });
   }
   $('[data-login]').addEventListener('click', login);
   $('#login-pass').addEventListener('keydown', function (e) { if (e.key === 'Enter') login(); });
 
   $('[data-reset]').addEventListener('click', function () {
     if (!confirm('Se va a borrar la configuración de este dispositivo y vas a tener que cargar la llave de GitHub de nuevo. ¿Seguir?')) return;
-    try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* nada */ }
+    try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(INTENTOS_KEY); } catch (e) { /* nada */ }
     mostrar('setup');
   });
 
   $('[data-logout]').addEventListener('click', function () {
     if (sucio && !confirm('Tenés cambios sin guardar. ¿Salir igual?')) return;
+    salir();
+  });
+
+  function salir() {
     token = null; data = null; fotosNuevas = {}; sucio = false;
     mostrar('login');
+  }
+
+  // Si el panel queda abierto sin uso, se cierra la sesión (salvo que haya cambios sin guardar).
+  var ultimoUso = Date.now();
+  ['pointerdown', 'keydown', 'input'].forEach(function (ev) {
+    document.addEventListener(ev, function () { ultimoUso = Date.now(); }, true);
   });
+  setInterval(function () {
+    if (token && !sucio && Date.now() - ultimoUso > INACTIVIDAD_MS) {
+      salir();
+      mensaje('login', 'Se cerró la sesión por inactividad.');
+    }
+  }, 30 * 1000);
 
   $('[data-save]').addEventListener('click', guardar);
 

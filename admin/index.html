@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://api.github.com; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://api.github.com; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow">
   <title>Administrar — Lúmina Bakery</title>
@@ -36,16 +36,17 @@
         <li><strong>Token name:</strong> Admin Lúmina. <strong>Expiration:</strong> la fecha más lejana que te deje.</li>
         <li><strong>Repository access:</strong> “Only select repositories” y elegí <strong>lumina</strong>.</li>
         <li><strong>Permissions → Repository permissions → Contents:</strong> “Read and write”.</li>
+        <li>No elijas el tipo “classic”: tiene que ser una llave <em>fine-grained</em>, que solo puede tocar este repositorio.</li>
         <li>Tocá <strong>Generate token</strong> y copiá el código (empieza con <code>github_pat_</code>).</li>
       </ol>
     </details>
     <div class="form">
       <label for="setup-token">Llave de GitHub</label>
       <input id="setup-token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
-      <label for="setup-pass">Elegí una contraseña</label>
-      <input id="setup-pass" type="password" autocomplete="new-password" minlength="6">
+      <label for="setup-pass">Elegí una contraseña (mínimo 10 caracteres)</label>
+      <input id="setup-pass" type="password" autocomplete="new-password" minlength="10">
       <label for="setup-pass2">Repetí la contraseña</label>
-      <input id="setup-pass2" type="password" autocomplete="new-password" minlength="6">
+      <input id="setup-pass2" type="password" autocomplete="new-password" minlength="10">
       <button type="button" class="btn" data-setup>Guardar y entrar</button>
       <p class="msg" data-msg="setup" role="alert"></p>
     </div>

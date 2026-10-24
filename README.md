@@ -26,7 +26,7 @@ Entrando a `/admin` (por ejemplo `https://lolosannn.github.io/lumina/admin`) se 
 1. Crear una llave de GitHub en https://github.com/settings/personal-access-tokens/new con la cuenta dueña del repo:
    - Repository access: *Only select repositories* → `lumina`.
    - Permissions → Repository permissions → **Contents: Read and write**.
-2. En `/admin`, pegar la llave y elegir una contraseña.
+2. En `/admin`, pegar la llave y elegir una contraseña (mínimo 10 caracteres). Solo se aceptan llaves *fine-grained* (`github_pat_…`): las clásicas dan acceso a todos los repos de la cuenta.
 
 Después, para entrar, solo se pide la contraseña. La llave queda guardada **cifrada con esa contraseña** solo en ese dispositivo; nunca se sube a la web. Si se olvida la contraseña, “Olvidé mi contraseña” borra la configuración y se vuelve a cargar la llave.
 
@@ -67,6 +67,17 @@ El sitio no tiene servidor, base de datos, formularios ni pagos: el pedido viaja
 - **Límites** en nombre (60 caracteres) y aclaraciones (300).
 - **Links externos** con `rel="noopener noreferrer"` y referrer limitado.
 - **Anti-clickjacking**: la página no se deja mostrar dentro de un iframe de otro sitio.
+- **Datos de productos validados**: lo que llega de `data/productos.json` se filtra antes de usarse (ids simples, fotos solo de `img/productos/` con extensión de imagen, precios enteros, WhatsApp de 8 a 15 dígitos). Un dato con forma rara se descarta.
+- **`/.well-known/security.txt`**: indica dónde reportar un problema de seguridad (avisos privados del repo). Vence cada año: actualizar la fecha `Expires`.
+
+### Panel de administración
+
+- La llave de GitHub se guarda cifrada (AES-GCM, clave derivada con PBKDF2-SHA256 de 600.000 iteraciones). Las guardadas con la versión anterior se vuelven a cifrar solas al entrar.
+- Después de 3 contraseñas incorrectas hay que esperar, cada vez el doble (hasta 15 minutos).
+- La sesión se cierra sola tras 20 minutos sin uso, si no hay cambios sin guardar.
+- Las fotos se vuelven a dibujar antes de subirse, así no llevan la ubicación GPS ni otros datos del celular; se rechazan archivos que no son imágenes o pesan más de 25 MB.
+- Antes de guardar se validan precios, ids y nombres de fotos.
+- CSP propia: solo puede conectarse al propio sitio y a `api.github.com`; `noindex` para que no aparezca en buscadores.
 
 Si se agregan scripts o estilos nuevos, tienen que ir en archivos propios (no en línea ni desde otro dominio), o la CSP los va a bloquear.
 
@@ -75,3 +86,6 @@ Si se agregan scripts o estilos nuevos, tienen que ir en archivos propios (no en
 1. **Settings → Pages → Enforce HTTPS** activado.
 2. **Autenticación en dos pasos** en la cuenta de GitHub (Settings → Password and authentication).
 3. Si se usa un dominio propio, **verificarlo** en Settings → Pages para que nadie más pueda usarlo.
+4. **Proteger la rama principal** (Settings → Branches/Rules): impedir force-push y borrado.
+5. **Llave del admin con vencimiento** y solo con acceso a `lumina` → Contents: Read and write. Si un celular se pierde, revocarla en https://github.com/settings/personal-access-tokens.
+6. Activar **Private vulnerability reporting** (Settings → Security) para que funcione el link de `security.txt`.

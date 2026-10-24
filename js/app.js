@@ -58,9 +58,45 @@
     return '';
   }
 
+  // Solo se aceptan datos con la forma esperada: ids simples, fotos de img/productos/
+  // y precios enteros. Lo que no cumple se descarta en vez de llegar al HTML.
+  var ID_OK = /^[a-z0-9-]{1,60}$/;
+  var FOTO_OK = /^[a-z0-9-]{1,80}\.(jpe?g|png|webp)$/i;
+
+  function texto(v, max) {
+    return typeof v === 'string' ? v.slice(0, max) : '';
+  }
+
+  function sanear(json) {
+    var categorias = json.categorias.filter(function (c) {
+      return c && ID_OK.test(c.id) && typeof c.nombre === 'string';
+    }).map(function (c) {
+      return { id: c.id, nombre: texto(c.nombre, 80), etiqueta: texto(c.etiqueta, 80) };
+    });
+    var vistos = {};
+    var productos = json.productos.filter(function (p) {
+      if (!p || !ID_OK.test(p.id) || vistos[p.id] || typeof p.nombre !== 'string') return false;
+      vistos[p.id] = true;
+      return true;
+    }).map(function (p) {
+      var precio = Number.isInteger(p.precio) && p.precio >= 0 && p.precio <= 100000000 ? p.precio : null;
+      return {
+        id: p.id,
+        categoria: ID_OK.test(p.categoria) ? p.categoria : '',
+        nombre: texto(p.nombre, 80),
+        detalle: texto(p.detalle, 120),
+        precio: precio,
+        imagen: FOTO_OK.test(p.imagen || '') ? p.imagen : ''
+      };
+    });
+    var whatsapp = /^\d{8,15}$/.test(String(json.whatsapp || '')) ? String(json.whatsapp) : '5491132385943';
+    return { whatsapp: whatsapp, categorias: categorias, productos: productos };
+  }
+
   function cargarCarrito() {
     try {
       var guardado = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      if (!guardado || typeof guardado !== 'object' || Array.isArray(guardado)) return {};
       var limpio = {};
       Object.keys(guardado).forEach(function (id) {
         var q = parseInt(guardado[id], 10);
@@ -317,8 +353,7 @@
     })
     .then(function (json) {
       if (!json || !Array.isArray(json.productos) || !Array.isArray(json.categorias)) throw new Error('formato');
-      data = json;
-      if (!/^\d{8,15}$/.test(String(data.whatsapp || ''))) data.whatsapp = '5491132385943';
+      data = sanear(json);
       actualizarLinksWhatsApp();
       iniciar();
     })
