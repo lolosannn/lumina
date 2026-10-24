@@ -67,20 +67,20 @@
       "imagen": "budin-integral.jpg"
     },
     {
-      "id": "cookies-clasicas",
-      "categoria": "cookies",
-      "nombre": "Cookies clásicas",
-      "detalle": "Paquete x 3 unidades",
-      "precio": 4000,
-      "imagen": "cookies-clasicas.jpg"
-    },
-    {
       "id": "torta-matera",
       "categoria": "tortas",
       "nombre": "Torta matera",
       "detalle": "",
       "precio": 10000,
       "imagen": "torta-matera.jpg"
+    },
+    {
+      "id": "cookies-clasicas",
+      "categoria": "cookies",
+      "nombre": "Cookies clásicas",
+      "detalle": "",
+      "precio": 4000,
+      "imagen": "cookies-clasicas.jpg"
     }
   ]
 }
